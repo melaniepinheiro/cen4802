@@ -2,7 +2,7 @@
 
 **Author:** Melanie Pinheiro
 
-Restaurant Task Tracker is a small Java web application for organizing daily tasks across restaurant locations. Users can add a task, choose its priority, mark it complete or reopen it, and delete it. The page also calculates total, completed, and open task counts.
+Restaurant Task Tracker is a small Java web application for organizing daily tasks across restaurant locations. Users can add a task, choose its priority, mark it complete or reopen it, delete it, and filter the list to show all, open, or completed tasks. The page also calculates total, completed, and open task counts.
 
 The project uses only Java's standard library, including the built-in `HttpServer`, so it has no external runtime dependencies. It provides a manageable foundation for later DevOps work such as automated testing, continuous integration, containerization, deployment, monitoring, and security analysis.
 
