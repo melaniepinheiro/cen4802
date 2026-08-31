@@ -1,56 +1,35 @@
+
 # Restaurant Task Tracker
 
 **Author:** Melanie Pinheiro
+**Course:** CEN 4802
 
-Restaurant Task Tracker is a small Java web application for organizing daily tasks across restaurant locations. Users can add a task, choose its priority, mark it complete or reopen it, delete it, and filter the list to show all, open, or completed tasks. The page also calculates total, completed, and open task counts.
+## About the Application
 
-The project uses only Java's standard library, including the built-in `HttpServer`, so it has no external runtime dependencies. It provides a manageable foundation for later DevOps work such as automated testing, continuous integration, containerization, deployment, monitoring, and security analysis.
+Restaurant Task Tracker is a small Java web application that helps users organize tasks for different restaurant locations.
+
+## Features
+
+* Add a task
+* Enter a restaurant location
+* Select a priority
+* Complete or reopen tasks
+* Delete tasks
+* View total, completed, and open task counts
+* Filter tasks by All Tasks, Open, or Completed
 
 ## Requirements
 
-- JDK 17 or newer
-- A web browser
+* Java 17 or newer
+* A web browser
 
-> Make sure a **JDK** is installed, not only a Java Runtime Environment (JRE).
+## How to Run
 
-## Run on Windows
+On Windows, open the project folder and run:
 
-Double-click `run.bat`, or open PowerShell/Command Prompt in the project folder and run:
+`run.bat`
 
-```text
-run.bat
-```
+Then open the following address in a web browser:
 
-## Run on macOS or Linux
+`http://localhost:8080`
 
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-Then open [http://localhost:8080](http://localhost:8080) in a browser. Stop the server with `Ctrl+C` in the terminal.
-
-## Optional Maven build
-
-If Maven is installed, the project can also be compiled with:
-
-```bash
-mvn clean package
-java --add-modules jdk.httpserver -jar target/restaurant-task-tracker-1.0.0.jar
-```
-
-## Application endpoints
-
-- `GET /` - displays the task tracker
-- `POST /tasks` - adds a task
-- `POST /tasks/{id}/toggle` - completes or reopens a task
-- `POST /tasks/{id}/delete` - deletes a task
-- `GET /health` - returns a simple JSON health response
-
-## Data storage
-
-Tasks are stored in memory for this first version. They reset when the application stops. Persistent storage can be added during a later assignment.
-
-## Acknowledgement
-
-This project was created by Melanie Pinheiro with guidance and code assistance from OpenAI ChatGPT. The web server uses the `jdk.httpserver` package included with the Java Development Kit.
