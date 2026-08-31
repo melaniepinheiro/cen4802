@@ -1,0 +1,18 @@
+# Generated Java build output
+out/
+target/
+*.class
+*.jar
+
+# IDE and operating-system files
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
