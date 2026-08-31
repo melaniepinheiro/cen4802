@@ -85,9 +85,11 @@ public final class App {
     }
 
     private static void showHomePage(HttpExchange exchange, String errorMessage) throws IOException {
-        List<Task> tasks = TASKS.findAll();
-        long completedCount = tasks.stream().filter(Task::completed).count();
-        String page = renderPage(tasks, completedCount, errorMessage);
+        List<Task> allTasks = TASKS.findAll();
+        TaskFilter filter = TaskFilter.from(exchange.getRequestURI());
+        List<Task> visibleTasks = allTasks.stream().filter(filter::includes).toList();
+        long completedCount = allTasks.stream().filter(Task::completed).count();
+        String page = renderPage(visibleTasks, allTasks.size(), completedCount, filter, errorMessage);
         sendResponse(exchange, 200, "text/html; charset=UTF-8", page);
     }
 
@@ -153,14 +155,21 @@ public final class App {
         }
     }
 
-    private static String renderPage(List<Task> tasks, long completedCount, String errorMessage) {
+    private static String renderPage(
+            List<Task> visibleTasks,
+            int totalTaskCount,
+            long completedCount,
+            TaskFilter selectedFilter,
+            String errorMessage) {
         StringBuilder taskCards = new StringBuilder();
-        for (Task task : tasks) {
+        for (Task task : visibleTasks) {
             taskCards.append(renderTask(task));
         }
 
         if (taskCards.isEmpty()) {
-            taskCards.append("<div class=\"empty\">No tasks yet. Add the first task above.</div>");
+            taskCards.append("<div class=\"empty\">No ")
+                    .append(escapeHtml(selectedFilter.displayName().toLowerCase()))
+                    .append(" tasks to show.</div>");
         }
 
         String error = errorMessage == null
@@ -200,6 +209,11 @@ public final class App {
                     .task:first-child { padding-top:0; }
                     .task.done h3 { text-decoration:line-through; color:#64748b; }
                     .task h3 { margin:0 0 7px; }
+                    .section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+                    .section-head h2 { margin:0; }
+                    .filters { display:flex; flex-wrap:wrap; gap:7px; }
+                    .filter-link { color:#475569; background:#f1f5f9; border-radius:999px; padding:7px 11px; text-decoration:none; font-size:.86rem; font-weight:700; }
+                    .filter-link.active { color:white; background:var(--blue); }
                     .meta { display:flex; flex-wrap:wrap; gap:7px; color:#64748b; font-size:.86rem; }
                     .badge { border-radius:999px; padding:3px 8px; background:#eef2ff; color:#3743a5; }
                     .badge.high { background:#fff1f0; color:var(--red); }
@@ -212,6 +226,7 @@ public final class App {
                       form.add { grid-template-columns:1fr; }
                       .summary { grid-template-columns:1fr; }
                       .task { grid-template-columns:1fr; }
+                      .section-head { align-items:flex-start; flex-direction:column; }
                       .actions { justify-content:flex-start; }
                     }
                   </style>
@@ -238,14 +253,32 @@ public final class App {
                         <button class="primary" type="submit">Add task</button>
                       </form>
                     </section>
-                    <section class="panel"><h2>Current tasks</h2>%s</section>
+                    <section class="panel">
+                      <div class="section-head"><h2>Current tasks</h2><nav class="filters" aria-label="Task filters">%s</nav></div>
+                      %s
+                    </section>
                     <footer>Java %s · Health check available at <code>/health</code></footer>
                   </main>
                 </body>
                 </html>
                 """.formatted(
-                tasks.size(), completedCount, tasks.size() - completedCount,
-                error, taskCards, Runtime.version().feature());
+                totalTaskCount, completedCount, totalTaskCount - completedCount,
+                error, renderFilters(selectedFilter), taskCards, Runtime.version().feature());
+    }
+
+    private static String renderFilters(TaskFilter selectedFilter) {
+        StringBuilder links = new StringBuilder();
+        for (TaskFilter filter : TaskFilter.values()) {
+            String activeClass = filter == selectedFilter ? " active" : "";
+            links.append("<a class=\"filter-link")
+                    .append(activeClass)
+                    .append("\" href=\"/?filter=")
+                    .append(filter.queryValue())
+                    .append("\">")
+                    .append(escapeHtml(filter.displayName()))
+                    .append("</a>");
+        }
+        return links.toString();
     }
 
     private static String renderTask(Task task) {
@@ -309,6 +342,56 @@ public final class App {
                 }
             }
             return NORMAL;
+        }
+    }
+
+    private enum TaskFilter {
+        ALL("all", "All tasks"),
+        OPEN("open", "Open"),
+        COMPLETED("completed", "Completed");
+
+        private final String queryValue;
+        private final String displayName;
+
+        TaskFilter(String queryValue, String displayName) {
+            this.queryValue = queryValue;
+            this.displayName = displayName;
+        }
+
+        String queryValue() {
+            return queryValue;
+        }
+
+        String displayName() {
+            return displayName;
+        }
+
+        boolean includes(Task task) {
+            return switch (this) {
+                case ALL -> true;
+                case OPEN -> !task.completed();
+                case COMPLETED -> task.completed();
+            };
+        }
+
+        static TaskFilter from(URI uri) {
+            String query = uri.getRawQuery();
+            if (query == null || query.isBlank()) {
+                return ALL;
+            }
+
+            for (String pair : query.split("&")) {
+                String[] parts = pair.split("=", 2);
+                if (parts.length == 2 && "filter".equals(URLDecoder.decode(parts[0], StandardCharsets.UTF_8))) {
+                    String value = URLDecoder.decode(parts[1], StandardCharsets.UTF_8);
+                    for (TaskFilter filter : values()) {
+                        if (filter.queryValue.equalsIgnoreCase(value)) {
+                            return filter;
+                        }
+                    }
+                }
+            }
+            return ALL;
         }
     }
 
