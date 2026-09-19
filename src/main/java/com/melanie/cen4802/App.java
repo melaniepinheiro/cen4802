@@ -182,7 +182,7 @@ public final class App {
                 <head>
                   <meta charset="utf-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <title>Restaurant Task Tracker</title>
+                  <title>Restaurant Task Tracker - CI Updated</title>
                   <style>
                     :root { --navy:#17233c; --blue:#2e6be6; --green:#16845b; --red:#b42318; --paper:#fff; --bg:#f4f6fa; --line:#dfe4ec; }
                     * { box-sizing:border-box; }
