@@ -232,7 +232,7 @@ public final class App {
                   </style>
                 </head>
                 <body>
-                  <header><div><h1>Restaurant Task Tracker</h1><p>Keep daily store responsibilities organized in one place.</p></div></header>
+                  <header><div><h1>Restaurant Task Tracker</h1><p>Updated with Maven for Assignment 2.</p></div></header>
                   <main>
                     <section class="panel summary">
                       <div class="stat"><strong>%d</strong><span>Total tasks</span></div>
@@ -322,7 +322,7 @@ public final class App {
                 .replace("'", "&#39;");
     }
 
-    private enum Priority {
+    enum Priority {
         LOW("Low"), NORMAL("Normal"), HIGH("High");
 
         private final String displayName;
@@ -345,7 +345,7 @@ public final class App {
         }
     }
 
-    private enum TaskFilter {
+     enum TaskFilter {
         ALL("all", "All tasks"),
         OPEN("open", "Open"),
         COMPLETED("completed", "Completed");
@@ -395,7 +395,7 @@ public final class App {
         }
     }
 
-    private record Task(
+     record Task(
             int id,
             String description,
             String location,
