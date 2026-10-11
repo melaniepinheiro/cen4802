@@ -1,0 +1,6 @@
+# Send only the container configuration and the packaged JAR to Docker.
+**
+!Dockerfile
+!.dockerignore
+!target/
+!target/restaurant-task-tracker-1.0.0.jar
