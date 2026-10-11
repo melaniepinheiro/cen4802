@@ -89,7 +89,15 @@ public final class App {
         TaskFilter filter = TaskFilter.from(exchange.getRequestURI());
         List<Task> visibleTasks = allTasks.stream().filter(filter::includes).toList();
         long completedCount = allTasks.stream().filter(Task::completed).count();
-        String page = renderPage(visibleTasks, allTasks.size(), completedCount, filter, errorMessage);
+
+
+        long highPriorityCount = countOpenHighPriorityTasks(allTasks);
+
+
+
+        String page = renderPage(visibleTasks, allTasks.size(), completedCount,
+                highPriorityCount, filter, errorMessage);
+
         sendResponse(exchange, 200, "text/html; charset=UTF-8", page);
     }
 
@@ -157,9 +165,12 @@ public final class App {
 
     private static String renderPage(
             List<Task> visibleTasks,
+
             int totalTaskCount,
             long completedCount,
+            long highPriorityCount,
             TaskFilter selectedFilter,
+
             String errorMessage) {
         StringBuilder taskCards = new StringBuilder();
         for (Task task : visibleTasks) {
@@ -182,7 +193,7 @@ public final class App {
                 <head>
                   <meta charset="utf-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <title>Restaurant Task Tracker - CI Updated</title>
+                <title>Restaurant Task Tracker - Docker Version 2</title>
                   <style>
                     :root { --navy:#17233c; --blue:#2e6be6; --green:#16845b; --red:#b42318; --paper:#fff; --bg:#f4f6fa; --line:#dfe4ec; }
                     * { box-sizing:border-box; }
@@ -193,7 +204,7 @@ public final class App {
                     header p { margin:0; color:#cbd5e1; }
                     main { padding:26px 0 48px; }
                     .panel { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:0 12px 34px rgba(23,35,60,.08); margin-bottom:20px; }
-                    .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+                    .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
                     .stat { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:16px; }
                     .stat strong { display:block; font-size:1.7rem; color:var(--navy); }
                     .stat span { color:#64748b; font-size:.9rem; }
@@ -232,13 +243,15 @@ public final class App {
                   </style>
                 </head>
                 <body>
-                  <header><div><h1>Restaurant Task Tracker</h1><p>Updated with Maven for Assignment 2.</p></div></header>
+                  <header><div><h1>Restaurant Task Tracker</h1><p>Updated container version 2.</p></div></header>
                   <main>
                     <section class="panel summary">
                       <div class="stat"><strong>%d</strong><span>Total tasks</span></div>
                       <div class="stat"><strong>%d</strong><span>Completed</span></div>
                       <div class="stat"><strong>%d</strong><span>Still open</span></div>
-                    </section>
+                
+                      <div class="stat"><strong>%d</strong><span>Open high-priority tasks</span></div>
+                                          </section>
                     <section class="panel">
                       <h2>Add a task</h2>
                       %s
@@ -262,8 +275,16 @@ public final class App {
                 </body>
                 </html>
                 """.formatted(
-                totalTaskCount, completedCount, totalTaskCount - completedCount,
+
+                totalTaskCount, completedCount, totalTaskCount - completedCount, highPriorityCount,
+
                 error, renderFilters(selectedFilter), taskCards, Runtime.version().feature());
+    }
+
+    static long countOpenHighPriorityTasks(List<Task> tasks) {
+        return tasks.stream()
+                .filter(task -> task.priority() == Priority.HIGH && !task.completed())
+                .count();
     }
 
     private static String renderFilters(TaskFilter selectedFilter) {
