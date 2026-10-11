@@ -81,4 +81,29 @@ class AppTest {
                 App.TaskFilter.from(URI.create("/?filter=wrong"))
         );
     }
+
+    @Test
+    void highPriorityCounterOnlyCountsOpenHighTasks() {
+        LocalDateTime now = LocalDateTime.now();
+
+        App.Task highOpen = new App.Task(
+                1, "Check refrigerator", "Lutz",
+                App.Priority.HIGH, false, now
+        );
+
+        App.Task highCompleted = new App.Task(
+                2, "Check sanitizer", "Tallahassee",
+                App.Priority.HIGH, true, now
+        );
+
+        App.Task normalOpen = new App.Task(
+                3, "Opening checklist", "Boca Raton",
+                App.Priority.NORMAL, false, now
+        );
+
+        assertEquals(1, App.countOpenHighPriorityTasks(
+                java.util.List.of(highOpen, highCompleted, normalOpen)
+        ));
+    }
+
 }

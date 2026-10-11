@@ -89,7 +89,15 @@ public final class App {
         TaskFilter filter = TaskFilter.from(exchange.getRequestURI());
         List<Task> visibleTasks = allTasks.stream().filter(filter::includes).toList();
         long completedCount = allTasks.stream().filter(Task::completed).count();
-        String page = renderPage(visibleTasks, allTasks.size(), completedCount, filter, errorMessage);
+
+
+        long highPriorityCount = countOpenHighPriorityTasks(allTasks);
+
+
+
+        String page = renderPage(visibleTasks, allTasks.size(), completedCount,
+                highPriorityCount, filter, errorMessage);
+
         sendResponse(exchange, 200, "text/html; charset=UTF-8", page);
     }
 
@@ -157,9 +165,12 @@ public final class App {
 
     private static String renderPage(
             List<Task> visibleTasks,
+
             int totalTaskCount,
             long completedCount,
+            long highPriorityCount,
             TaskFilter selectedFilter,
+
             String errorMessage) {
         StringBuilder taskCards = new StringBuilder();
         for (Task task : visibleTasks) {
@@ -193,7 +204,7 @@ public final class App {
                     header p { margin:0; color:#cbd5e1; }
                     main { padding:26px 0 48px; }
                     .panel { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:0 12px 34px rgba(23,35,60,.08); margin-bottom:20px; }
-                    .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+                    .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
                     .stat { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:16px; }
                     .stat strong { display:block; font-size:1.7rem; color:var(--navy); }
                     .stat span { color:#64748b; font-size:.9rem; }
@@ -238,7 +249,9 @@ public final class App {
                       <div class="stat"><strong>%d</strong><span>Total tasks</span></div>
                       <div class="stat"><strong>%d</strong><span>Completed</span></div>
                       <div class="stat"><strong>%d</strong><span>Still open</span></div>
-                    </section>
+                
+                      <div class="stat"><strong>%d</strong><span>Open high-priority tasks</span></div>
+                                          </section>
                     <section class="panel">
                       <h2>Add a task</h2>
                       %s
@@ -262,8 +275,16 @@ public final class App {
                 </body>
                 </html>
                 """.formatted(
-                totalTaskCount, completedCount, totalTaskCount - completedCount,
+
+                totalTaskCount, completedCount, totalTaskCount - completedCount, highPriorityCount,
+
                 error, renderFilters(selectedFilter), taskCards, Runtime.version().feature());
+    }
+
+    static long countOpenHighPriorityTasks(List<Task> tasks) {
+        return tasks.stream()
+                .filter(task -> task.priority() == Priority.HIGH && !task.completed())
+                .count();
     }
 
     private static String renderFilters(TaskFilter selectedFilter) {
