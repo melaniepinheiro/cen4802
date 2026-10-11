@@ -37,3 +37,15 @@ jobs:
         with:
           name: restaurant-task-tracker
           path: target/*.jar
+
+      - name: Build Docker image
+        run: docker build -t restaurant-task-tracker:midterm .
+
+      - name: Save Docker image
+        run: docker save restaurant-task-tracker:midterm -o restaurant-task-tracker-image.tar
+
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v7
+        with:
+          name: restaurant-task-tracker-docker-image
+          path: restaurant-task-tracker-image.tar
