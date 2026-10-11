@@ -82,6 +82,7 @@ class AppTest {
         );
     }
 
+
     @Test
     void highPriorityCounterOnlyCountsOpenHighTasks() {
         LocalDateTime now = LocalDateTime.now();
@@ -91,19 +92,26 @@ class AppTest {
                 App.Priority.HIGH, false, now
         );
 
+        App.Task anotherHighOpen = new App.Task(
+                2, "Check freezer", "Tallahassee",
+                App.Priority.HIGH, false, now
+        );
+
         App.Task highCompleted = new App.Task(
-                2, "Check sanitizer", "Tallahassee",
+                3, "Check sanitizer", "Lutz",
                 App.Priority.HIGH, true, now
         );
 
         App.Task normalOpen = new App.Task(
-                3, "Opening checklist", "Boca Raton",
+                4, "Opening checklist", "Boca Raton",
                 App.Priority.NORMAL, false, now
         );
 
-        assertEquals(1, App.countOpenHighPriorityTasks(
-                java.util.List.of(highOpen, highCompleted, normalOpen)
+        assertEquals(2, App.countOpenHighPriorityTasks(
+                java.util.List.of(
+                        highOpen, anotherHighOpen,
+                        highCompleted, normalOpen
+                )
         ));
     }
 
-}
