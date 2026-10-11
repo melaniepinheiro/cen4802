@@ -283,7 +283,7 @@ public final class App {
 
     static long countOpenHighPriorityTasks(List<Task> tasks) {
         return tasks.stream()
-                .filter(task -> task.priority() == Priority.HIGH && task.completed())
+                .filter(task -> task.priority() == Priority.HIGH && !task.completed())
                 .count();
     }
 
