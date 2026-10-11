@@ -49,7 +49,7 @@ class AppTest {
                 2,
                 "Check sanitizer",
                 "Tallahassee",
-                App.Priority.HIGH,
+                App.Priority.NORMAL,
                 true,
                 LocalDateTime.now()
         );
