@@ -1,0 +1,21 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-task-tracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restaurant-task-tracker
+  template:
+    metadata:
+      labels:
+        app: restaurant-task-tracker
+    spec:
+      containers:
+        - name: restaurant-task-tracker
+          image: restaurant-task-tracker:midterm
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
