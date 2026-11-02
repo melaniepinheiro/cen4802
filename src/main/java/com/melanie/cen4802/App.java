@@ -19,11 +19,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * A small, dependency-free Java web application for tracking restaurant tasks.
  */
 public final class App {
+    private static final Logger LOGGER =
+            Logger.getLogger(App.class.getName());
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("MMM d, h:mm a");
     private static final TaskService TASKS = new TaskService();
 
@@ -37,8 +41,10 @@ public final class App {
         server.setExecutor(Executors.newFixedThreadPool(8));
         server.start();
 
-        System.out.println("Restaurant Task Tracker is running.");
-        System.out.println("Open http://localhost:" + port + " in your browser.");
+
+LOGGER.info("Restaurant Task Tracker started successfully on port " + port);
+LOGGER.info("Application available at http://localhost:" + port);
+
     }
 
     private static int readPort() {
@@ -54,7 +60,7 @@ public final class App {
     private static void handleRequest(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
-
+LOGGER.fine("Incoming request: " + method + " " + path);
         try {
             if ("GET".equals(method) && "/".equals(path)) {
                 showHomePage(exchange, null);
@@ -78,10 +84,17 @@ public final class App {
             }
 
             sendResponse(exchange, 404, "text/plain; charset=UTF-8", "Page not found");
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            sendResponse(exchange, 500, "text/plain; charset=UTF-8", "The server could not process the request.");
-        }
+        
+} catch (Exception exception) {
+    LOGGER.log(Level.SEVERE,
+            "Request failed: " + method + " " + path,
+            exception);
+
+    sendResponse(exchange, 500,
+            "text/plain; charset=UTF-8",
+            "The server could not process the request.");
+}
+
     }
 
     private static void showHomePage(HttpExchange exchange, String errorMessage) throws IOException {
@@ -107,26 +120,46 @@ public final class App {
         String location = form.getOrDefault("location", "").trim();
         String priority = form.getOrDefault("priority", "Normal").trim();
 
-        if (description.isBlank() || location.isBlank()) {
-            showHomePage(exchange, "Enter both a task description and a store/location.");
-            return;
-        }
 
-        TASKS.add(description, location, Priority.from(priority));
-        redirect(exchange, "/");
+if (description.isBlank() || location.isBlank()) {
+    LOGGER.warning("Task creation rejected: missing description or location");
+    showHomePage(exchange, "Enter both a task description and a store/location.");
+    return;
+}
+
+TASKS.add(description, location, Priority.from(priority));
+
+LOGGER.info("Task created: location=" + location
+        + ", priority=" + priority
+        + ", description=" + description);
+
+redirect(exchange, "/");
+
     }
 
-    private static void changeTaskStatus(HttpExchange exchange, String path) throws IOException {
-        int id = Integer.parseInt(path.split("/")[2]);
-        TASKS.toggle(id);
-        redirect(exchange, "/");
-    }
+   
+private static void changeTaskStatus(HttpExchange exchange, String path) throws IOException {
+    int id = Integer.parseInt(path.split("/")[2]);
 
-    private static void deleteTask(HttpExchange exchange, String path) throws IOException {
-        int id = Integer.parseInt(path.split("/")[2]);
-        TASKS.delete(id);
-        redirect(exchange, "/");
-    }
+    TASKS.toggle(id);
+
+    LOGGER.info("Task status changed: taskId=" + id);
+
+    redirect(exchange, "/");
+}
+
+
+  
+private static void deleteTask(HttpExchange exchange, String path) throws IOException {
+    int id = Integer.parseInt(path.split("/")[2]);
+
+    TASKS.delete(id);
+
+    LOGGER.info("Task deleted: taskId=" + id);
+
+    redirect(exchange, "/");
+}
+
 
     private static Map<String, String> readForm(HttpExchange exchange) throws IOException {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
